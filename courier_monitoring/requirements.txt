@@ -1,0 +1,10 @@
+Flask==3.0.0
+itsdangerous==2.2.0
+Jinja2==3.1.4
+reportlab
+pymysql==1.1.1
+requests
+fastapi==0.115.0
+uvicorn[standard]==0.30.0
+pydantic==2.8.2
+openpyxl>=3.1.0

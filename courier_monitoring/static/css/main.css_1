@@ -1,0 +1,75 @@
+.reports-block {
+    margin-top: 16px;
+    padding: 12px 14px;
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    font-size: 14px;
+}
+
+.report-form {
+    margin-bottom: 12px;
+}
+
+.report-filters,
+.report-courier-select,
+.report-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.report-filters label,
+.report-courier-select label {
+    font-size: 14px;
+}
+
+.report-filters input[type="date"],
+.report-courier-select select {
+    margin-left: 4px;
+    padding: 4px 8px;
+    border-radius: 6px;
+    border: 1px solid #d1d5db;
+    font-size: 13px;
+}
+
+.report-note {
+    font-size: 13px;
+    color: #6b7280;
+}
+
+.report-summary {
+    margin-top: 8px;
+    margin-bottom: 12px;
+    padding: 8px 10px;
+    border-radius: 6px;
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+}
+
+.report-route-card {
+    margin-bottom: 10px;
+    padding: 8px 10px;
+    border-radius: 6px;
+    border: 1px solid #e5e7eb;
+    background: #f9fafb;
+}
+
+.report-route-card h4 {
+    margin-top: 0;
+    margin-bottom: 4px;
+}
+
+.report-orders-list {
+    margin: 4px 0 0 18px;
+    padding: 0;
+    font-size: 13px;
+}
+
+.report-empty {
+    margin-top: 8px;
+    font-size: 13px;
+    color: #6b7280;
+}

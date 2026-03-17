@@ -1,0 +1,268 @@
+<!-- ===== dashboard_o.html ===== -->
+<h1>Панель мониторинга (оператор)</h1>
+
+<div class="tab">
+  <button
+      class="tablinks {% if active_tab == 'orders' %}active{% endif %}"
+      onclick="openTab(event, 'tab-orders')">
+    Заказы
+  </button>
+  <button
+      class="tablinks {% if active_tab == 'report' %}active{% endif %}"
+      onclick="openTab(event, 'tab-report')">
+    Отчётность
+  </button>
+  <button
+      class="tablinks {% if active_tab == 'create_user' %}active{% endif %}"
+      onclick="openTab(event, 'tab-create-user')">
+    Создать пользователя
+  </button>
+</div>
+
+<!-- ===== ВКЛАДКА "ЗАКАЗЫ" ===== -->
+<div id="tab-orders"
+     class="tabcontent"
+     style="display:{% if active_tab == 'orders' %}block{% else %}none{% endif %};">
+  <div class="orders-header">
+    <h2>Активные заказы</h2>
+    <button id="btn-open-create-order-modal" class="btn-primary">
+      Создать заказ
+    </button>
+  </div>
+
+  <p class="orders-note">
+    Отображаются заказы, которые ещё не доставлены (статус не <code>delivered</code>).
+    Оператор может изменить назначенного оператора и курьера.
+  </p>
+
+  <table class="data-table">
+      <thead>
+          <tr>
+              <th>ID</th>
+              <th>Адрес ресторана</th>
+              <th>Адрес клиента</th>
+              <th>Оператор</th>
+              <th>Курьер</th>
+              <th>Создан</th>
+              <th>Срок доставки</th>
+              <th>Статус</th>
+              <th>Действия</th>
+          </tr>
+      </thead>
+      <tbody>
+      {% for o in orders %}
+          <tr>
+              <td>{{ o.id }}</td>
+              <td>{{ o.restaurant_address }}</td>
+              <td>{{ o.client_address }}</td>
+
+              <!-- форма сохранения назначений для одной строки -->
+              <td>
+                  <form class="order-assign-form"
+                        method="post"
+                        action="{{ url_for('operator_update_order_assignments') }}">
+                      <!-- id заказа -->
+                      <input type="hidden" name="order_id" value="{{ o.id }}">
+
+                      <!-- оператор -->
+                      <select name="operator_id" class="assign-select">
+                          {% for op in operators_list %}
+                              <option value="{{ op.id }}"
+                                {% if o.operator_id == op.id %}selected{% endif %}>
+                                {{ op.full_name }}
+                              </option>
+                          {% endfor %}
+                      </select>
+              </td>
+
+              <td>
+                      <!-- курьер -->
+                      <select name="courier_id" class="assign-select">
+                          <option value="">—</option>
+                          {% for c in couriers %}
+                              <option value="{{ c.id }}"
+                                {% if o.courier_id == c.id %}selected{% endif %}>
+                                {{ c.full_name }}
+                              </option>
+                          {% endfor %}
+                      </select>
+              </td>
+
+              <td>{{ o.created_at }}</td>
+              <td>{{ o.due_at or '—' }}</td>
+              <td>{{ o.status }}</td>
+              <td>
+                      <button type="submit" class="btn-secondary btn-assign-save">
+                          Сохранить
+                      </button>
+                  </form>
+              </td>
+          </tr>
+      {% endfor %}
+      </tbody>
+  </table>
+</div>
+
+<!-- ===== ВКЛАДКА "ОТЧЁТНОСТЬ" ===== -->
+<div id="tab-report"
+     class="tabcontent"
+     style="display:{% if active_tab == 'report' %}block{% else %}none{% endif %};">
+  {% include 'reports.html' %}
+</div>
+
+<!-- ===== ВКЛАДКА "СОЗДАТЬ ПОЛЬЗОВАТЕЛЯ" ===== -->
+<div id="tab-create-user"
+     class="tabcontent"
+     style="display:{% if active_tab == 'create_user' %}block{% else %}none{% endif %};">
+  <h2>Создать пользователя</h2>
+  <form method="post" action="{{ url_for('operator_create_user') }}" class="form-create-user">
+      <div class="field-group">
+          <label for="full_name">ФИО:</label>
+          <input type="text" id="full_name" name="full_name" required>
+      </div>
+
+      <div class="field-group">
+          <label for="login">Логин:</label>
+          <input type="text" id="login" name="login" required>
+      </div>
+
+      <div class="field-group">
+          <label for="email">Email (опционально):</label>
+          <input type="email" id="email" name="email">
+      </div>
+
+      <div class="field-group">
+          <label for="password">Пароль:</label>
+          <input type="text" id="password" name="password" required>
+      </div>
+
+      <div class="field-group">
+          <label for="role-select">Роль:</label>
+          <select id="role-select" name="role">
+              <option value="courier">Курьер</option>
+              <option value="operator">Оператор</option>
+          </select>
+      </div>
+
+      <button type="submit" class="btn-primary">Создать</button>
+  </form>
+</div>
+
+<!-- ===== МОДАЛКА "СОЗДАТЬ ЗАКАЗ" ===== -->
+<div id="create-order-modal" class="modal">
+  <div class="modal-content">
+    <h3>Создать новый заказ</h3>
+
+    <form id="create-order-form">
+      <div class="form-group">
+        <label for="co-external-id">Внешний ID (опционально):</label>
+        <input type="text" id="co-external-id" class="form-control">
+      </div>
+
+      <div class="form-group">
+        <label for="co-restaurant-address">Адрес ресторана:</label>
+        <input type="text" id="co-restaurant-address" class="form-control" required>
+      </div>
+
+      <div class="form-group">
+        <label for="co-client-address">Адрес клиента:</label>
+        <input type="text" id="co-client-address" class="form-control" required>
+      </div>
+
+      <div class="form-group">
+        <label for="co-due-at">Срок доставки:</label>
+        <input type="datetime-local" id="co-due-at" class="form-control">
+      </div>
+
+      <div class="form-group">
+        <label for="co-comment">Состав заказа / комментарий:</label>
+        <textarea id="co-comment" class="form-control" rows="3"
+          placeholder="Например: Пицца Маргарита, 2 шт."></textarea>
+      </div>
+
+      <div class="modal-actions">
+        <button type="button" id="btn-create-order-cancel" class="btn-secondary">
+          Отмена
+        </button>
+        <button type="submit" class="btn-primary">
+          Создать
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  // ===== Модалка "Создать заказ" =====
+  const btnOpenCreate = document.getElementById('btn-open-create-order-modal');
+  const createModal   = document.getElementById('create-order-modal');
+  const createForm    = document.getElementById('create-order-form');
+  const btnCreateCancel = document.getElementById('btn-create-order-cancel');
+
+  function showCreateModal() {
+    if (createModal) {
+      createModal.classList.add('show');
+    }
+  }
+  function hideCreateModal() {
+    if (createModal) {
+      createModal.classList.remove('show');
+    }
+  }
+
+  if (btnOpenCreate && createModal && createForm && btnCreateCancel) {
+    btnOpenCreate.addEventListener('click', showCreateModal);
+    btnCreateCancel.addEventListener('click', hideCreateModal);
+
+    createForm.addEventListener('submit', function (e) {
+      e.preventDefault();
+
+      const externalId = document.getElementById('co-external-id').value.trim();
+      const restAddr   = document.getElementById('co-restaurant-address').value.trim();
+      const clientAddr = document.getElementById('co-client-address').value.trim();
+      const dueAtRaw   = document.getElementById('co-due-at').value.trim();
+      const comment    = document.getElementById('co-comment').value.trim();
+
+      if (!restAddr || !clientAddr) {
+        alert('Заполните адрес ресторана и адрес клиента.');
+        return;
+      }
+
+      fetch('{{ url_for("operator_create_order") }}', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          external_id: externalId || null,
+          restaurant_address: restAddr,
+          client_address: clientAddr,
+          due_at: dueAtRaw || null,
+          comment: comment || null
+        })
+      })
+        .then(r => r.json())
+        .then(data => {
+          if (data.ok) {
+            hideCreateModal();
+            window.location.reload();
+          } else {
+            alert('Не удалось создать заказ: ' + (data.error || 'ошибка'));
+          }
+        })
+        .catch(err => {
+          console.error('Ошибка operator_create_order:', err);
+          alert('Ошибка при создании заказа');
+        });
+    });
+  }
+
+  // закрытие модалки по клику по фону
+  if (createModal) {
+    createModal.addEventListener('click', function (e) {
+      if (e.target === createModal) hideCreateModal();
+    });
+  }
+
+  // БЛОК сохранения назначений убрали — формы теперь обычные и сами отправляются.
+});
+</script>

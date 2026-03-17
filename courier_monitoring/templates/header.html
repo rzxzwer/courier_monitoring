@@ -1,0 +1,26 @@
+<header class="site-header">
+    <div class="logo">
+        <span>Courier Monitor</span>
+    </div>
+    <div class="user-info">
+        {% if session.user_id %}
+            <span class="user-label">
+                {{ session.full_name }} ({{ session.role }})
+            </span>
+
+            <form method="post"
+                  action="{{ url_for('toggle_shift') }}"
+                  class="shift-form">
+                <button type="submit" class="btn-secondary">
+                    {% if on_shift %}
+                        Закончить работу
+                    {% else %}
+                        Начать работу
+                    {% endif %}
+                </button>
+            </form>
+
+            <a href="{{ url_for('logout') }}" class="logout-link">Выйти</a>
+        {% endif %}
+    </div>
+</header>

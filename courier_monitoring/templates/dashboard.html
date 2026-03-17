@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+
+{% block title %}Панель мониторинга{% endblock %}
+
+{% block content %}
+    {% if role == 'courier' %}
+        {% include 'dashboard_c.html' %}
+    {% else %}
+        {% include 'dashboard_o.html' %}
+    {% endif %}
+{% endblock %}

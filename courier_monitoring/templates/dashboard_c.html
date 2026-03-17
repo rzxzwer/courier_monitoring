@@ -1,0 +1,160 @@
+<h1>Панель мониторинга (курьер)</h1>
+
+<div class="tab">
+  <button
+      class="tablinks {% if active_tab == 'orders' %}active{% endif %}"
+      onclick="openTab(event, 'tab-orders')">
+    Заказы
+  </button>
+  <button
+      class="tablinks {% if active_tab == 'report' %}active{% endif %}"
+      onclick="openTab(event, 'tab-report')">
+    Отчётность
+  </button>
+</div>
+
+<div id="tab-orders"
+     class="tabcontent"
+     style="display:{% if active_tab == 'orders' %}block{% else %}none{% endif %};">
+
+  <!-- БЛОК МАРШРУТ -->
+  <div id="route-block" class="route-block" style="display:none;">
+    <h3>Маршрут</h3>
+
+    <div id="route-map" class="route-map-container"></div>
+    <div id="route-summary" class="route-summary"></div>
+    <div id="route-list"></div>
+
+    <div class="route-footer">
+      <!-- КНОПКА "В ПУТЬ" -->
+      <button id="btn-start-route" class="btn-primary" disabled>В путь</button>
+    </div>
+  </div>
+
+  <h2>Новые заказы</h2>
+
+  <div class="orders-list">
+    {% for o in orders %}
+      {% set dist_m = o.route_distance_m or 0 %}
+      {% set dur_s  = o.route_duration_sec or 0 %}
+      {# делим на целые числа, чтобы не было Decimal/float #}
+      {% set dist_km = (dist_m / 1000) %}
+      {% set dur_min = (dur_s / 60) %}
+
+      <div class="order-card"
+           data-order-id="{{ o.id }}"
+           data-restaurant="{{ o.restaurant_address }}"
+           data-client="{{ o.client_address }}"
+           data-distance-m="{{ dist_m }}"
+           data-duration-s="{{ dur_s }}">
+
+          {# 1 строка: Номер + статус / дата создания #}
+          <div class="order-row order-header">
+              <div class="order-left">
+                  Заказ №{{ o.id }} [{{ o.status }}]
+              </div>
+              <div class="order-right">
+                  {{ o.created_at }}
+              </div>
+          </div>
+
+          {# 2 строка: справа — срок доставки #}
+          <div class="order-row">
+              <div class="order-left"></div>
+              <div class="order-right">
+                  К доставке до: {{ o.due_at or '—' }}
+              </div>
+          </div>
+
+          {# 3 строка: слева — "Ресторан (адрес)" #}
+          <div class="order-row">
+              <div class="order-left">
+                  Ресторан: {{ o.restaurant_address }}
+              </div>
+              <div class="order-right"></div>
+          </div>
+
+          {# 4 строка: слева — адрес клиента #}
+          <div class="order-row">
+              <div class="order-left">
+                  Клиент: {{ o.client_address }}
+              </div>
+              <div class="order-right"></div>
+          </div>
+
+          {# 4.1 строка: статус координат #}
+          {% set has_coords = (o.restaurant_lat is not none and o.restaurant_lon is not none
+                               and o.client_lat is not none and o.client_lon is not none) %}
+          <div class="order-row coord-row">
+              <div class="order-left">
+                  <span class="coords-status
+                               {% if has_coords %}coords-ok{% else %}coords-pending{% endif %}"
+                        data-order-id="{{ o.id }}"
+                        {% if not has_coords %}data-needs-geo="1"{% endif %}>
+                      {% if has_coords %}
+                          Коорд-ты получены
+                      {% else %}
+                          Получаем коорд-ты
+                      {% endif %}
+                  </span>
+              </div>
+              <div class="order-right"></div>
+          </div>
+
+          {# 5 строка: слева — "Заказ [Показать]" #}
+          <div class="order-row order-show-items">
+              <div class="order-left show-items-left">
+                  <span>Заказ</span>
+                  <button type="button" class="btn-link btn-toggle-items">Показать</button>
+              </div>
+              <div class="order-right"></div>
+          </div>
+
+          {# Состав заказа (по умолчанию скрыт) #}
+          <div class="order-items" style="display:none;">
+              {% if o.items_list and o.items_list|length > 0 %}
+                  <ul class="items-list">
+                    {% for item in o.items_list %}
+                      <li>
+                        {{ item.name }} — {{ item.qty }} шт. × {{ item.price }} ₽
+                      </li>
+                    {% endfor %}
+                  </ul>
+              {% else %}
+                  <p><em>Нет данных по составу заказа</em></p>
+              {% endif %}
+              <button type="button"
+                      class="btn-link btn-hide-items">
+                  Скрыть
+              </button>
+          </div>
+
+          {# 6 строка: слева — расстояние/время, справа — "Добавить/Убрать из маршрута" #}
+          <div class="order-row order-footer">
+              <div class="order-left">
+                  {% if dist_m > 0 and dur_s > 0 %}
+                      Примерно: {{ dist_km|round(1) }} км,
+                      {{ dur_min|round(0) }} мин
+                  {% else %}
+                      Примерно: n/a
+                  {% endif %}
+              </div>
+              <div class="order-right">
+                  <button type="button"
+                          class="btn-secondary btn-route-toggle">
+                      Добавить в маршрут
+                  </button>
+              </div>
+          </div>
+      </div>
+    {% else %}
+      <p>Новых заказов нет.</p>
+    {% endfor %}
+  </div>
+</div>
+
+<div id="tab-report"
+     class="tabcontent"
+     style="display:{% if active_tab == 'report' %}block{% else %}none{% endif %};">
+  {% include 'reports.html' %}
+</div>

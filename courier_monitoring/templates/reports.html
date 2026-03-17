@@ -1,0 +1,138 @@
+<h2>Отчётность</h2>
+
+<form method="get" action="{{ url_for('dashboard') }}" class="report-form">
+  <div class="report-row">
+    <div class="field-group">
+      <label for="report_from">От (дата):</label>
+      <input
+        type="date"
+        id="report_from"
+        name="report_from"
+        value="{{ report_from or '' }}"
+        required
+      >
+    </div>
+
+    <div class="field-group">
+      <label for="report_to">До (дата):</label>
+      <input
+        type="date"
+        id="report_to"
+        name="report_to"
+        value="{{ report_to or '' }}"
+        required
+      >
+    </div>
+  </div>
+
+  {% if role == 'operator' %}
+  <div class="report-row">
+    <div class="field-group">
+      <label for="report_courier_id">Курьер:</label>
+      <select id="report_courier_id" name="report_courier_id">
+        <!-- Пункт "Все курьеры" -->
+        <option value="all"
+          {% if not report_courier_id or report_courier_id == 'all' %}selected{% endif %}>
+          Все курьеры
+        </option>
+
+        {% for c in couriers %}
+          <option value="{{ c.id }}"
+            {% if report_courier_id and (report_courier_id|string == c.id|string) %}selected{% endif %}>
+            {{ c.full_name }}
+          </option>
+        {% endfor %}
+      </select>
+    </div>
+  </div>
+  {% endif %}
+
+  {# остаёмся на вкладке "Отчётность" после сабмита #}
+  <input type="hidden" name="tab" value="report">
+
+  <div class="report-row">
+    <button type="submit" class="btn-primary">Сформировать отчёт</button>
+  </div>
+</form>
+
+{% if report_summary %}
+  <hr>
+
+  <h3>
+    Отчёт за период
+    {{ report_from }} – {{ report_to }}
+    {% if role == 'operator' %}
+      (курьер(ы): {{ report_summary.courier_name }})
+    {% else %}
+      (курьер: {{ report_summary.courier_name }})
+    {% endif %}
+  </h3>
+
+  <p>
+    Маршрутов: {{ report_summary.total_routes }},
+    заказов: {{ report_summary.total_orders }}<br>
+    Плановый километраж: {{ report_summary.total_planned_km }} км<br>
+    Фактический километраж: {{ report_summary.total_actual_km }} км<br>
+    Фактическое время в пути: {{ report_summary.total_duration_h }} ч
+    {{ report_summary.total_duration_m }} мин
+  </p>
+
+  {% for r in report_summary.routes %}
+    <div class="report-route-block">
+      <h4>
+        Маршрут №{{ r.route_id }}
+        {% if role == 'operator' and (not report_courier_id or report_courier_id == 'all') %}
+          {% if r.courier_name %}
+            (курьер: {{ r.courier_name }})
+          {% endif %}
+        {% endif %}
+      </h4>
+      <p>
+        Начат: {{ r.created_at }}<br>
+        Завершён: {{ r.finished_at or '—' }}<br>
+        Плановая дистанция: {{ (r.distance_planned_m / 1000)|round(1) }} км<br>
+        Фактическая дистанция:
+        {% if r.distance_actual_m %}
+          {{ (r.distance_actual_m / 1000)|round(1) }} км
+        {% else %}
+          —
+        {% endif %}<br>
+        Фактическая длительность:
+        {% if r.duration_actual_sec %}
+          {{ (r.duration_actual_sec // 3600) }} ч
+          {{ ((r.duration_actual_sec % 3600) // 60) }} мин
+        {% else %}
+          —
+        {% endif %}
+      </p>
+
+      {% if r.comment %}
+        <p><strong>Комментарий:</strong> {{ r.comment }}</p>
+      {% endif %}
+
+      <p><strong>Заказы в маршруте:</strong></p>
+      <ul>
+        {% for o in r.orders %}
+          <li>
+            Заказ №{{ o.order_id }}
+            {% if o.external_id %}(внешний ID: {{ o.external_id }}){% endif %}:
+            {{ o.client_address }}
+            (доставлен: {{ o.delivered_at or '—' }})
+          </li>
+        {% endfor %}
+      </ul>
+    </div>
+  {% endfor %}
+
+    <!-- Экспорт в Excel -->
+  <form method="get" action="{{ url_for('reports_excel') }}" class="report-export-form">
+    <input type="hidden" name="report_from" value="{{ report_from }}">
+    <input type="hidden" name="report_to" value="{{ report_to }}">
+    {% if role == 'operator' %}
+      <input type="hidden" name="report_courier_id"
+             value="{{ report_courier_id or '' }}">
+    {% endif %}
+    <button type="submit" class="btn-secondary">Экспорт в Excel</button>
+  </form>
+{% endif %}
+

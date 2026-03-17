@@ -1,0 +1,637 @@
+/* ==========================
+   ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ
+   ========================== */
+
+:root {
+    /* Основные цвета из баннера Silver Spoon Group */
+    --color-primary: #b51227;          /* насыщенный бордово-красный */
+    --color-primary-dark: #8d0f20;     /* более тёмный для hover */
+    --color-primary-soft: #fce6ea;     /* мягкий фон карточек/ховеров */
+
+    --color-accent: #f4b640;           /* тёплый золотистый акцент */
+    --color-accent-soft: #fff4d7;
+
+    --color-bg: #f7f3f0;               /* общий фон страницы */
+    --color-surface: #ffffff;          /* фон карточек, таблиц, модалок */
+    --color-surface-muted: #faf5f2;
+
+    --color-border: #e3d5cc;
+    --color-border-strong: #c79a8a;
+
+    --color-text-main: #211715;        /* тёмно-коричневый */
+    --color-text-muted: #7a6962;
+    --color-text-invert: #ffffff;
+
+    --color-danger: #cc3344;
+    --color-danger-soft: #fde7ea;
+
+    --radius-sm: 4px;
+    --radius-md: 8px;
+    --radius-lg: 999px;
+
+    --shadow-soft: 0 8px 20px rgba(33, 23, 21, 0.08);
+
+    --font-main: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+}
+
+/* ==========================
+   БАЗА
+   ========================== */
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: var(--font-main);
+    background: radial-gradient(circle at top left, #fcefe9 0, var(--color-bg) 45%, #f7f3f0 100%);
+    color: var(--color-text-main);
+}
+
+.main-content {
+    padding: 20px;
+}
+
+/* Ссылки по умолчанию */
+a {
+    color: var(--color-primary);
+    text-decoration: none;
+}
+a:hover {
+    text-decoration: underline;
+}
+
+/* ==========================
+   HEADER / FOOTER
+   ========================== */
+
+.site-header,
+.site-footer {
+    padding: 10px 20px;
+    background: linear-gradient(90deg, #3c1813, #751821);
+    color: var(--color-text-invert);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.site-header-title {
+    font-weight: 600;
+    letter-spacing: 0.03em;
+}
+
+.site-footer {
+    font-size: 12px;
+    opacity: 0.95;
+}
+
+/* ==========================
+   КНОПКИ И ССЫЛКИ
+   ========================== */
+
+.btn-primary {
+    padding: 8px 18px;
+    border-radius: var(--radius-lg);
+    border: none;
+    background: var(--color-primary);
+    color: var(--color-text-invert);
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    box-shadow: var(--shadow-soft);
+    transition: background 0.15s ease, transform 0.1s ease, box-shadow 0.15s ease;
+}
+
+.btn-primary:hover {
+    background-color: var(--color-primary-dark);
+    transform: translateY(-1px);
+    box-shadow: 0 10px 24px rgba(33, 23, 21, 0.14);
+}
+
+.btn-primary:disabled {
+    opacity: 0.5;
+    cursor: default;
+    box-shadow: none;
+    transform: none;
+}
+
+.btn-secondary {
+    padding: 6px 14px;
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--color-border);
+    background: var(--color-surface);
+    color: var(--color-text-main);
+    font-size: 13px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.btn-secondary:hover {
+    background-color: var(--color-surface-muted);
+    border-color: var(--color-border-strong);
+}
+
+.btn-link {
+    border: none;
+    background: none;
+    color: var(--color-primary);
+    cursor: pointer;
+    padding: 0;
+    font-size: 13px;
+}
+.btn-link:hover {
+    text-decoration: underline;
+}
+
+/* ссылка выхода */
+.logout-link {
+    color: #ffe6eb;
+    text-decoration: none;
+    margin-left: 12px;
+    font-size: 13px;
+}
+.logout-link:hover {
+    text-decoration: underline;
+}
+
+/* ==========================
+   ФОРМЫ / INPUT / SELECT / DATE / TEXTAREA
+   ========================== */
+
+.field-group {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 12px;
+}
+
+.field-group label {
+    font-size: 14px;
+    margin-bottom: 4px;
+    color: var(--color-text-main);
+}
+
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="date"],
+input[type="number"],
+select,
+textarea {
+    padding: 8px 10px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    font-size: 14px;
+    font-family: var(--font-main);
+    background-color: var(--color-surface);
+    color: var(--color-text-main);
+    transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+}
+
+input[type="date"] {
+    min-width: 140px;
+}
+
+textarea {
+    resize: vertical;
+    min-height: 80px;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 1px rgba(181, 18, 39, 0.3);
+    background: #fffdfc;
+}
+
+/* ==========================
+   ЛОГИН-СТРАНИЦА
+   ========================== */
+
+.login-body {
+    margin: 0;
+    padding: 0;
+    background: radial-gradient(circle at top, #3c1813 0, #1b0e0b 50%, #0b0605 100%);
+    color: var(--color-text-invert);
+    font-family: var(--font-main);
+}
+
+.login-overlay {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.login-modal {
+    background: var(--color-surface);
+    color: var(--color-text-main);
+    padding: 24px 32px;
+    border-radius: 16px;
+    box-shadow: 0 18px 40px rgba(0, 0, 0, 0.45);
+    min-width: 280px;
+    max-width: 360px;
+}
+
+.login-modal h2 {
+    margin-top: 0;
+    margin-bottom: 16px;
+    text-align: center;
+    font-weight: 600;
+}
+
+/* Ошибка логина */
+.error-message {
+    background: var(--color-danger-soft);
+    color: var(--color-danger);
+    padding: 8px 10px;
+    border-radius: var(--radius-md);
+    font-size: 13px;
+    margin-bottom: 10px;
+}
+
+/* ==========================
+   ИНФО О ПОЛЬЗОВАТЕЛЕ / СМЕНА
+   ========================== */
+
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.user-label {
+    margin-right: 8px;
+    font-size: 14px;
+}
+
+.shift-form {
+    display: inline-block;
+    margin: 0 8px;
+}
+
+/* ==========================
+   ТАБЛИЦЫ
+   ========================== */
+
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 12px;
+    background: var(--color-surface);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    box-shadow: var(--shadow-soft);
+}
+
+.data-table th,
+.data-table td {
+    border: 1px solid var(--color-border);
+    padding: 6px 8px;
+    font-size: 13px;
+}
+
+.data-table th {
+    background: var(--color-primary-soft);
+    color: var(--color-text-main);
+    text-align: left;
+}
+
+/* ==========================
+   ВКЛАДКИ
+   ========================== */
+
+.tab {
+    overflow: hidden;
+    border-radius: var(--radius-md) var(--radius-md) 0 0;
+    background-color: var(--color-surface);
+    margin-top: 16px;
+    box-shadow: var(--shadow-soft);
+}
+
+.tab button {
+    background-color: transparent;
+    float: left;
+    border: none;
+    outline: none;
+    cursor: pointer;
+    padding: 10px 18px;
+    transition: background 0.15s ease, color 0.15s ease;
+    font-size: 15px;
+    color: var(--color-text-muted);
+    border-bottom: 2px solid transparent;
+}
+
+.tab button:hover {
+    background-color: var(--color-primary-soft);
+    color: var(--color-text-main);
+}
+
+.tab button.active {
+    color: var(--color-primary);
+    border-bottom-color: var(--color-primary);
+    font-weight: 600;
+    background: var(--color-surface);
+}
+
+.tabcontent {
+    display: none;
+    padding: 14px 16px;
+    border-radius: 0 0 var(--radius-md) var(--radius-md);
+    border: 1px solid var(--color-border);
+    border-top: none;
+    background: var(--color-surface);
+    box-shadow: var(--shadow-soft);
+}
+
+/* ==========================
+   ЗАКАЗЫ (карточки)
+   ========================== */
+
+.orders-list {
+    margin-top: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.order-card {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    padding: 10px 12px;
+    box-shadow: var(--shadow-soft);
+    font-size: 14px;
+}
+
+.order-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 4px;
+    gap: 8px;
+}
+
+.order-header {
+    font-weight: 600;
+}
+
+.order-footer {
+    margin-top: 6px;
+    align-items: center;
+    display: flex;
+    justify-content: space-between;
+}
+
+.order-left,
+.order-right {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.order-items {
+    margin: 6px 0 0;
+    padding: 6px 8px;
+    background: var(--color-surface-muted);
+    border-radius: var(--radius-md);
+}
+
+.items-list {
+    margin: 0 0 6px 16px;
+    padding: 0;
+}
+
+/* состояние кнопки "в маршруте" */
+.btn-route-toggle.in-route {
+    background: #16a34a;
+    color: var(--color-text-invert);
+}
+
+/* ==========================
+   БЛОК МАРШРУТА НА DASHBOARD
+   ========================== */
+
+.route-block {
+    margin-top: 16px;
+    margin-bottom: 16px;
+    padding: 10px 12px;
+    background: var(--color-accent-soft);
+    border: 1px solid var(--color-accent);
+    border-radius: var(--radius-md);
+}
+
+.route-block h3 {
+    margin-top: 0;
+    margin-bottom: 8px;
+}
+
+.route-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 4px 0;
+    border-bottom: 1px dashed rgba(199, 154, 138, 0.6);
+    font-size: 14px;
+}
+
+.route-item:last-child {
+    border-bottom: none;
+}
+
+.route-item-left {
+    max-width: 70%;
+}
+
+.route-item-right {
+    text-align: right;
+    white-space: nowrap;
+}
+
+.route-map-container {
+    width: 100%;
+    height: 300px;
+    margin-bottom: 8px;
+    border-radius: var(--radius-md);
+    overflow: hidden;
+}
+
+/* краткое описание */
+.route-summary {
+    margin-bottom: 8px;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+/* ==========================
+   КООРДИНАТЫ
+   ========================== */
+
+.coord-row {
+    font-size: 12px;
+    margin-top: 2px;
+}
+
+.coords-status {
+    color: var(--color-text-muted);
+}
+
+.coords-ok {
+    color: #16a34a;
+}
+
+.coords-pending {
+    color: var(--color-text-muted);
+    font-style: italic;
+}
+
+.coords-error {
+    color: var(--color-danger);
+}
+
+/* ==========================
+   СТРАНИЦА /on_route
+   ========================== */
+
+.on-route-page h1 {
+    margin-top: 0;
+    margin-bottom: 12px;
+}
+
+.on-route-page ul {
+    padding-left: 18px;
+    font-size: 14px;
+}
+
+/* ==========================
+   МОДАЛЬНЫЕ ОКНА
+   ========================== */
+
+.modal {
+    position: fixed;
+    z-index: 1000;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+
+    display: none;
+    align-items: center;
+    justify-content: center;
+
+    background-color: rgba(33, 23, 21, 0.45);
+}
+
+.modal.show {
+    display: flex;
+}
+
+.modal-content {
+    background-color: var(--color-surface);
+    border-radius: 12px;
+    padding: 20px 24px;
+    max-width: 480px;
+    width: 90%;
+    box-shadow: 0 18px 40px rgba(0, 0, 0, 0.4);
+}
+
+.modal-actions {
+    margin-top: 16px;
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+}
+
+/* общие группы форм (используются и в модалках) */
+.form-group {
+    margin-bottom: 12px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 4px;
+    font-weight: 500;
+}
+
+/* ==========================
+   ОТЧЁТНОСТЬ
+   ========================== */
+
+.reports-block {
+    margin-top: 16px;
+    padding: 12px 14px;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    font-size: 14px;
+    box-shadow: var(--shadow-soft);
+}
+
+.report-form {
+    margin-bottom: 12px;
+}
+
+.report-filters,
+.report-courier-select,
+.report-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.report-filters label,
+.report-courier-select label {
+    font-size: 14px;
+}
+
+.report-note {
+    font-size: 13px;
+    color: var(--color-text-muted);
+}
+
+.report-summary {
+    margin-top: 8px;
+    margin-bottom: 12px;
+    padding: 8px 10px;
+    border-radius: var(--radius-md);
+    background: var(--color-primary-soft);
+    border: 1px solid rgba(181, 18, 39, 0.25);
+}
+
+.report-route-card {
+    margin-bottom: 10px;
+    padding: 8px 10px;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--color-border);
+    background: var(--color-surface-muted);
+}
+
+.report-route-card h4 {
+    margin-top: 0;
+    margin-bottom: 4px;
+}
+
+.report-orders-list {
+    margin: 4px 0 0 18px;
+    padding: 0;
+    font-size: 13px;
+}
+
+.report-empty {
+    margin-top: 8px;
+    font-size: 13px;
+    color: var(--color-text-muted);
+}

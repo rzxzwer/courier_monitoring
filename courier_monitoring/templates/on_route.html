@@ -1,0 +1,234 @@
+{% extends 'base.html' %}
+
+{% block title %}Маршрут{% endblock %}
+
+{% block content %}
+<div id="on-route-page" class="on-route-page">
+  <h1>Маршрут</h1>
+
+  <div id="route-map" class="route-map-container"></div>
+
+  <p class="route-summary">
+    Общее расстояние:
+    {{ (route.distance_planned_m|float / 1000.0)|round(1) }} км,
+    время в пути: {{ (route.duration_planned_sec|float / 60.0)|round(0) }} мин
+  </p>
+
+  <h3>Заказы в маршруте</h3>
+  <ul>
+    {% for o in orders %}
+      <li>
+        Заказ №{{ o.id }}:
+        {{ o.restaurant_address }} → {{ o.client_address }}
+        (статус: {{ o.status }})
+      </li>
+    {% endfor %}
+  </ul>
+
+  <button id="btn-finish-route" class="btn-primary">Закончить</button>
+</div>
+
+{# === МОДАЛКА 1: Изменилось ли расстояние? === #}
+<div id="modal-distance-changed" class="modal">
+  <div class="modal-content">
+    <h3>Изменилось ли расстояние?</h3>
+    <p>Фактический маршрут отличался от рассчитанного?</p>
+    <div class="modal-actions">
+      <button type="button" id="btn-distance-no" class="btn-secondary">Нет</button>
+      <button type="button" id="btn-distance-yes" class="btn-primary">Да</button>
+    </div>
+  </div>
+</div>
+
+{# === МОДАЛКА 2: Ввод фактического расстояния и комментария === #}
+<div id="modal-distance-details" class="modal">
+  <div class="modal-content">
+    <h3>Как изменился километраж?</h3>
+
+    <div class="form-group">
+      <label for="input-actual-distance">Фактическое расстояние (км):</label>
+      <input
+        type="text"
+        id="input-actual-distance"
+        class="form-control"
+        placeholder="Например, 12.3"
+      >
+    </div>
+
+    <div class="form-group">
+      <label for="input-comment">Опишите причину:</label>
+      <textarea
+        id="input-comment"
+        class="form-control"
+        rows="3"
+        placeholder="Например: объезд из-за перекрытия, заехал к другому клиенту и т. д."
+      ></textarea>
+    </div>
+
+    <div class="modal-actions">
+      <button type="button" id="btn-distance-details-cancel" class="btn-secondary">
+        Отмена
+      </button>
+      <button type="button" id="btn-distance-details-submit" class="btn-primary">
+        Закончить
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  // ===== Карта маршрута =====
+  if (typeof L !== 'undefined') {
+    const map = L.map('route-map');
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+      attribution: '&copy; OpenStreetMap contributors',
+    }).addTo(map);
+
+    // geometry в БД хранится как JSON-строка -> парсим
+    const geometry = JSON.parse({{ route.geometry | tojson | safe }});
+    const orders = {{ orders | tojson | safe }};
+
+    const routeLayer = L.geoJSON(geometry).addTo(map);
+    let bounds = routeLayer.getBounds();
+
+    // Маркеры ресторана и клиентов
+    if (orders && orders.length > 0) {
+      const first = orders[0];
+      if (first.restaurant_lat && first.restaurant_lon) {
+        const m = L.marker([
+          Number(first.restaurant_lat),
+          Number(first.restaurant_lon),
+        ]).addTo(map);
+        m.bindPopup(first.restaurant_address || 'Ресторан');
+        bounds.extend(m.getLatLng());
+      }
+
+      orders.forEach(function (o) {
+        if (o.client_lat && o.client_lon) {
+          const m = L.marker([
+            Number(o.client_lat),
+            Number(o.client_lon),
+          ]).addTo(map);
+          m.bindPopup(o.client_address || ('Клиент #' + o.id));
+          bounds.extend(m.getLatLng());
+        }
+      });
+    }
+
+    if (bounds && bounds.isValid()) {
+      map.fitBounds(bounds);
+    }
+  }
+
+  // ===== Логика модальных окон завершения маршрута =====
+  const btnFinish = document.getElementById('btn-finish-route');
+
+  const modalChanged = document.getElementById('modal-distance-changed');
+  const modalDetails = document.getElementById('modal-distance-details');
+
+  const btnNo = document.getElementById('btn-distance-no');
+  const btnYes = document.getElementById('btn-distance-yes');
+
+  const btnCancel = document.getElementById('btn-distance-details-cancel');
+  const btnSubmit = document.getElementById('btn-distance-details-submit');
+
+  const inputDistance = document.getElementById('input-actual-distance');
+  const inputComment = document.getElementById('input-comment');
+
+  if (!btnFinish) {
+    return;
+  }
+
+  function showModal(modal) {
+    if (modal) {
+      modal.classList.add('show');
+    }
+  }
+
+  function hideModal(modal) {
+    if (modal) {
+      modal.classList.remove('show');
+    }
+  }
+
+  // Нажали "Закончить" — спрашиваем, изменилось ли расстояние
+  btnFinish.addEventListener('click', function () {
+    showModal(modalChanged);
+  });
+
+  // "Нет" — расстояние не изменилось, шлём distance_changed=false
+  if (btnNo) {
+    btnNo.addEventListener('click', function () {
+      hideModal(modalChanged);
+
+      fetch('/route/finish', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ distance_changed: false }),
+      })
+        .then((r) => r.json())
+        .then((data) => {
+          if (data.ok && data.redirect_url) {
+            window.location.href = data.redirect_url;
+          } else {
+            alert('Не удалось завершить маршрут');
+          }
+        })
+        .catch((err) => {
+          console.error('Ошибка /route/finish (Нет):', err);
+          alert('Ошибка при завершении маршрута');
+        });
+    });
+  }
+
+  // "Да" — показываем вторую модалку с полем расстояния и комментарием
+  if (btnYes) {
+    btnYes.addEventListener('click', function () {
+      hideModal(modalChanged);
+      showModal(modalDetails);
+    });
+  }
+
+  // Отмена во второй модалке
+  if (btnCancel) {
+    btnCancel.addEventListener('click', function () {
+      hideModal(modalDetails);
+    });
+  }
+
+  // "Закончить" во второй модалке — отправляем distance_changed=true
+  if (btnSubmit) {
+    btnSubmit.addEventListener('click', function () {
+      const dist = (inputDistance.value || '').trim();
+      const comment = (inputComment.value || '').trim();
+
+      fetch('/route/finish', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          distance_changed: true,
+          actual_distance_km: dist,
+          comment: comment,
+        }),
+      })
+        .then((r) => r.json())
+        .then((data) => {
+          if (data.ok && data.redirect_url) {
+            window.location.href = data.redirect_url;
+          } else if (data.error) {
+            alert('Не удалось завершить маршрут: ' + data.error);
+          } else {
+            alert('Не удалось завершить маршрут');
+          }
+        })
+        .catch((err) => {
+          console.error('Ошибка /route/finish (Да):', err);
+          alert('Ошибка при завершении маршрута');
+        });
+    });
+  }
+});
+</script>
+{% endblock %}
